@@ -1,7 +1,7 @@
 #include "h.h"
 
 int main(){
-    Func f("furniture.dat");
+    Func f("furniture.txt");
     int choise, id, number;
     string name;
 

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <stdexcept>
+#include <sstream>
 
 using namespace std;
 
@@ -28,6 +30,9 @@ class Furniture{
 
     friend ostream&operator<<(ostream&out, const Furniture&furniture);
     friend istream&operator>>(istream&in, Furniture&arr);
+
+    string toString() const;
+    void fromString(const string& str);
 };
 
 class Func{

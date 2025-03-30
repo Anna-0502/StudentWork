@@ -17,6 +17,26 @@ istream&operator>>(istream&in, Furniture&arr){
     return in;
 }
 
+string Furniture::toString() const {
+    stringstream ss;
+    ss << id << "," << name << "," << color << "," << number;
+    return ss.str();
+}
+
+void Furniture::fromString(const string& str) {
+    stringstream ss(str);
+    string temp;
+
+    getline(ss, temp, ',');
+    id = stoi(temp);
+
+    getline(ss, name, ',');
+    getline(ss, color, ',');
+
+    getline(ss, temp, ',');
+    number = stoi(temp);
+}
+
 void Func::size(){
     capacity *= 2;
     Furniture*newArr = new Furniture[capacity];
@@ -37,40 +57,75 @@ Func::~Func(){
 }
 
 void Func::load(){
-    ifstream file(filename, ios::binary);
-    if (!file){
+    ifstream file(filename);
+    if (!file.is_open()){
+        count=0;
         nextID = 1;
-        return;
-    }
-
-    file.read((char*)&count, sizeof(count));
-    if (count>capacity){
-        capacity = count + 5;
-        Furniture*newArray = new Furniture[capacity];
-        for (int i=0; i<count; i++){
-            if (i<capacity){
-                newArray[i] = arr[i];
+        ofstream newFile(filename);
+                if (!newFile.is_open()){
+                    cerr<<"Error creating file:"<<filename<<endl;
+                    return;
+                }
+            newFile.close();
+            return;
             }
+            string line;
+            if (getline(file, line)) {
+                try {
+                    count = stoi(line);
+                }
+                catch (const std::invalid_argument& ia) {
+                    cerr << "Invalid count." << endl;
+                    count = 0;
+                }
+            }
+            else {
+                count = 0;
+            }    
+            if (getline(file, line)) {
+                try {
+                    nextID = stoi(line);
+                }
+                catch (const std::invalid_argument& ia) {
+                    cerr << "Invalid nextID." << endl;
+                    nextID = 1;
+                }
+            }
+            else {
+                nextID = 1;
+            }    
+            if (count > capacity) {
+                capacity = count + 5;
+                Furniture* newArray = new Furniture[capacity];
+                delete[] arr;
+                arr = newArray;
+            }
+            for (int i = 0; i < count; i++) {
+                if (getline(file, line)) {
+                    arr[i].fromString(line);
+                }
+                else {
+                    cerr << "Error reading." << endl;
+                    count = i;
+                    break;
+                }
+            }
+            file.close();
         }
-        delete[] arr;
-        arr = newArray;
-    }
-
-    file.read((char*)&nextID, sizeof(nextID));
-    for (int i=0; i<count; i++)
-        file.read((char*)&arr[i], sizeof(Furniture));
-    file.close();
-}
 
 void Func::save(){
-    ofstream file(filename, ios::binary);
-    if (!file.is_open()) return;
+    ofstream file(filename);
+    if (!file.is_open()){
+        cerr<<"Error opening:"<<filename<<endl;
+                return;
+            }
+            file << count << endl;
+            file << nextID << endl;
 
-    file.write((char*)&count, sizeof(count));
-    file.write((char*)&nextID, sizeof(nextID));
-    for (int i=0; i<count; i++)
-        file.write((char*)&arr[i], sizeof(Furniture));
-    file.close();
+            for (int i = 0; i < count; i++) {
+                file << arr[i].toString() << endl;
+            }
+            file.close();
 }
 
 void Func::add(Furniture ar){
@@ -97,7 +152,6 @@ void Func::erase(int id){
                 arr[j]=arr[j+1];
             count--;
             cout<<"Element is delete\n";
-            nextID--;
             found = true;
             return;
             }
